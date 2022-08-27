@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Abdullah Emir'e ithafen . 27.08.2022-->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe Game</title>
+    <style type="text/css">
+        .game-view {
+            width: 606px;
+            margin: auto;
+        }
+
+        .game-board {
+            background-color: #00f;
+        }
+
+        .box {
+            float: left;
+            width: 200px;
+            height: 200px;
+            background-color: lightblue;
+            border: 1px solid #f2f2f2;
+            text-align: center;
+            font-size: 150px;
+            font-family: Calibri;
+            color: #444;
+        }
+
+        .score {
+            text-align: center;
+            font-size: xx-large;
+            color: #444;
+            font-family: calibri;
+            padding-top: 10px;
+        }
+
+        body::before {
+            background-image: url('hvspc.png');
+        }
+
+        .score>span {
+            background-color: lightcoral;
+            border-radius: 5px;
+
+            color: #fff;
+        }
+
+        .green-score {
+            background-color: lightgreen !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-view">
+        <div class="game-board">
+            <div data-x="0" data-y="0" class="box"></div>
+            <div data-x="0" data-y="1" class="box"></div>
+            <div data-x="0" data-y="2" class="box"></div>
+            <div data-x="1" data-y="0" class="box"></div>
+            <div data-x="1" data-y="1" class="box"></div>
+            <div data-x="1" data-y="2" class="box"></div>
+            <div data-x="2" data-y="0" class="box"></div>
+            <div data-x="2" data-y="1" class="box"></div>
+            <div data-x="2" data-y="2" class="box"></div>
+        </div>
+        <div class="score">
+
+            <span class="green-score" id="userPoint">Kullanıcı:0</span> <span id="pcPoint"> PC:1</span>
+
+        </div>
+        <div class="alert">
+
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script type="text/javascript">
+        var board = [];
+        var userSign = 1;
+        var pcSign = 0;
+        var player = "";
+        var starterPlayer = "";
+        var pcPoint = 0, userPoint = 0;
+        /*
+            -1 => X veya O yok
+            0 => O 
+            1 => X
+        */
+        function play() {
+            $("#pcPoint").html("PC: " + pcPoint);
+            $("#userPoint").html("User: " + userPoint);
+            $(".game-board").find("div").each(function (i, item) { $(item).html(""); });
+            board = [];
+            for (var i = 0; i < 3; i++) {
+                board.push([-1, -1, -1]);
+            }
+
+            if (starterPlayer == "") {
+                starterPlayer = "user";
+                player = "user";
+                userSign = 1;
+                pcSign = 0;
+            } else if (starterPlayer == "user") {
+                starterPlayer = "pc";
+                player = "pc";
+                userSign = 1;
+                pcSign = 0;
+                thinkAndPlay();
+            } else {
+                //bir önceki oyunda pc ilk oynayan imiş.
+                starterPlayer = "user";
+                player = "user";
+                userSign = 1;
+                pcSign = 0;
+            }
+
+        }
+        function gameOver(status) {
+            if (status == pcSign) {
+                alert('Oyunu bilgisayar kazandı!');
+                pcPoint++;
+            } else if (status == userSign) {
+                alert('Tebrikler! Oyunu kazandınız!');
+                userPoint++;
+            } else {
+                alert('Oyun berabere!');
+            }
+            play();
+        }
+
+        function drawSign(x, y, sign) {
+            $(".box[data-x=" + x + "][data-y=" + y + "]").html(sign == 1 ? "X" : "O");
+        }
+        function checkIfGameFinished(_board) {
+            var emptyBoxesExist = false;
+            for (var i = 0; i < _board.length; i++) {
+                //kazanan var mı kontrol et
+                if (_board[i][0] == _board[i][1] && _board[i][1] == _board[i][2] && _board[i][1] != -1)
+                    return _board[i][1];
+                if (_board[0][i] == _board[1][i] && _board[1][i] == _board[2][i] && _board[0][i] != -1)
+                    return _board[0][i];
+                if (_board[i][0] == -1 || _board[i][1] == -1 || _board[i][2] == -1)//burada biri ve olarak kalmış
+                    emptyBoxesExist = true;
+            }
+            //kazanan var mı kontrol et
+            if ((_board[0][0] == _board[1][1] && _board[1][1] == _board[2][2] && _board[1][1] != -1)
+                || (_board[0][2] == _board[1][1] && _board[1][1] == _board[2][0] && _board[1][1] != -1))
+                return _board[1][1];
+            if (emptyBoxesExist)
+                return -1;
+            else
+                return -2;
+
+        }
+        $(document).ready(function () {
+            play();
+            $(".box").click(function (e) {
+                var $item = $(e.currentTarget);
+                var x = parseInt($item.attr("data-x"));
+                var y = parseInt($item.attr("data-y"));
+                if (board[x][y] == -1) {
+                    //işlemi gerçekleştir.
+                    if (player == "user") {
+                        player = "pc";
+                        board[x][y] = userSign;
+                        drawSign(x, y, userSign);
+                        var gameFinished = checkIfGameFinished(board);
+                        if (gameFinished != -1) {
+                            //oyun bitmiş
+                            setTimeout(function () {
+                                gameOver(gameFinished);
+                            }, 250);
+                        } else {
+                            //pc işlemini yapsın
+                            thinkAndPlay();
+                        }
+
+                    } else {
+                        player = "user";
+                        board[x][y] = pcSign;
+                        drawSign(x, y, pcSign);
+                        var gameFinished = checkIfGameFinished(board);
+                        if (gameFinished != -1) {
+                            //oyun bitmiş
+                            setTimeout(function () {
+                                gameOver(gameFinished);
+                            }, 250);
+
+                        }
+                    }
+                    //oyun bitti mi?
+
+                }
+            });
+        });
+
+        /* begin of movement of pc*/
+        function boardGenerator(_board) {
+            var generatedBoard = [];
+            for (var i = 0; i < _board.length; i++) {
+                generatedBoard.push([_board[i][0], _board[i][1], _board[i][2]]);
+            }
+            return generatedBoard;
+        }
+        var movements = [];
+        function thinkAndPlay() {
+            movements = [];
+            var testBoard = boardGenerator(board);
+            var necessary = checkIfNecessaryBox(testBoard, userSign);
+            var pcDone = checkIfNecessaryBox(testBoard, pcSign);//eklendi.
+            var winX = 0, winY = 0;
+            if (pcDone != null) {
+                winX = pcDone.x;
+                winY = pcDone.y;
+
+            } else if (necessary != null) {
+                console.log("necesseray mv", necessary);
+                winX = necessary.x;
+                winY = necessary.y;
+            } else {
+                for (var x = 0; x < 3; x++) {
+                    for (var y = 0; y < 3; y++) {
+                        if (board[x][y] == -1) {
+                            //bu alanı pc sign'ı ile işaretleyeceğiz
+                            var testBoard = boardGenerator(board);
+                            testBoard[x][y] = pcSign;
+                            var result = checkIfGameFinished(testBoard);
+                            if (result != -1) {
+                                movements.push({ x: x, y: y, step: 0, winner: result });
+                            }
+                            simulateGame(testBoard, "user", 0, x, y);
+                        }
+                    }
+                }
+                var winStep = 999;
+                var noneStep = 999, noneX = 0, noneY = 0;
+                console.log("mv", movements);
+                for (var i = 0; i < movements.length; i++) {
+                    if (movements[i].winner == pcSign && movements[i].step < winStep) {
+                        winX = movements[i].x;
+                        winY = movements[i].y;
+                    } else if (movements[i].winner == -2 && movements[i].step < noneStep) {
+                        noneX = movements[i].x;
+                        noneY = movements[i].y;
+                    }
+                }
+                if (winStep == 999) {
+                    winX = noneX;
+                    winY = noneY;
+                }
+            }
+            $(".box[data-x=" + winX + "][data-y=" + winY + "]").click();
+        }
+
+        function checkIfNecessaryBox(_board, sign) {
+            for (var x = 0; x < 3; x++) {
+                for (var y = 0; y < 3; y++) {
+                    if (_board[x][y] == -1) {
+                        var testBoard = boardGenerator(_board);
+                        testBoard[x][y] = sign;
+                        var result = checkIfGameFinished(testBoard);
+                        if (result == sign)
+                            return {
+                                x: x,
+                                y: y
+                            };
+                    }
+                }
+            }
+            return null;
+        }
+        function simulateGame(_board, whoseTurn, step, x, y) {
+            var results = null;
+            for (var x = 0; x < 3; x++) {
+                for (var y = 0; y < 3; y++) {
+                    if (_board[x][y] == -1) {
+                        if (whoseTurn == "user")
+                            _board[x][y] = userSign;
+                        else
+                            _board[x][y] = pcSign;
+                        var result = checkIfGameFinished(_board);
+                        if (result == -1) {
+                            var testBoard = boardGenerator(_board);
+
+                            results = simulateGame(testBoard, whoseTurn == "user" ? "pc" : "user", step + 1, x, y);
+                        } else {
+                            movements.push({ x: x, y: y, step: step, winner: result });
+                        }
+                    }
+                }
+            }
+        }
+        /* end of movement of pc*/
+    </script>
+</body>
+
+</html>
